@@ -279,6 +279,7 @@
                 bow1Buffer = await audioCtx.decodeAudioData(ab1);
                 bow2Buffer = await audioCtx.decodeAudioData(ab2);
                 pluckBuffer = await audioCtx.decodeAudioData(abPluck);
+
                 isAudioLoaded = true;
 
                 if (isUnlocked) {
@@ -319,7 +320,8 @@
             }
         }
 
-        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0, volumeScale = 1.0) {
+        // Clean 1:1 playback function without sound-specific volume overrides
+        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0) {
             unlockAudio();
             const now = audioCtx ? audioCtx.currentTime : 0;
 
@@ -328,7 +330,7 @@
                 source.buffer = buffer;
 
                 const gainNode = audioCtx.createGain();
-                gainNode.gain.setValueAtTime(0.9 * volumeScale, now);
+                gainNode.gain.setValueAtTime(1.0, now);
 
                 source.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
@@ -345,7 +347,7 @@
                 osc.frequency.setValueAtTime(fallbackFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(fallbackFreq * 1.2, now + 0.2);
 
-                gain.gain.setValueAtTime(0.6 * volumeScale, now);
+                gain.gain.setValueAtTime(1.0, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
                 osc.connect(gain);
@@ -689,17 +691,17 @@
                 const currentDistance = baseRingY - ringY;
                 const progress = Math.min(Math.max(currentDistance / totalDistance, 0), 1.0);
 
-                // 1/5 point (20.0%) -> Play bow_1.mp3 ONCE at 50% volume (0.5)
+                // 1/5 point (20.0%) -> Play bow_1.mp3 at standard 1:1 volume
                 if (progress >= 0.20 && !triggeredStep1) {
                     triggeredStep1 = true;
-                    playBufferSound(bow1Buffer, 320, 1.2, 0.5);
+                    playBufferSound(bow1Buffer, 320, 1.2);
                     createBurst(ringX, ringY, 15, 'rgba(255, 255, 255, 0.9)');
                 }
 
-                // 3/5 point (60.0%) -> Play bow_2.mp3 ONCE at 50% volume (0.5)
+                // 3/5 point (60.0%) -> Play bow_2.mp3 at standard 1:1 volume
                 if (progress >= 0.60 && !triggeredStep2) {
                     triggeredStep2 = true;
-                    playBufferSound(bow2Buffer, 480, 1.2, 0.5);
+                    playBufferSound(bow2Buffer, 480, 1.2);
                     createBurst(ringX, ringY, 25, '#ffffff');
                 }
 
@@ -757,7 +759,7 @@
 
                     if (displacement > 5) {
                         const intensity = Math.min(displacement / (width * 0.25), 1.0);
-                        playBufferSound(pluckBuffer, 220, 0.8, 1.0);
+                        playBufferSound(pluckBuffer, 220, 0.8);
                         createBurst(grabbedNode.x, grabbedNode.y, 25, '#E5B409');
 
                         isStringVibrating = true;
