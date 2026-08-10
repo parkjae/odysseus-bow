@@ -86,11 +86,12 @@
             transition: color 0.5s ease;
         }
 
+        /* Centered Audio Prompt (height * 0.5) */
         .audio-prompt {
             position: absolute;
-            bottom: 40px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             z-index: 20;
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(12px);
@@ -110,7 +111,7 @@
         }
 
         .audio-prompt:active {
-            transform: translateX(-50%) scale(0.95);
+            transform: translate(-50%, -50%) scale(0.95);
             background: rgba(255, 255, 255, 0.2);
         }
 
@@ -688,17 +689,17 @@
                 const currentDistance = baseRingY - ringY;
                 const progress = Math.min(Math.max(currentDistance / totalDistance, 0), 1.0);
 
-                // 1/5 point (20.0%) -> Play bow_1.mp3 ONCE at 70% volume (0.7)
+                // 1/5 point (20.0%) -> Play bow_1.mp3 ONCE at 50% volume (0.5)
                 if (progress >= 0.20 && !triggeredStep1) {
                     triggeredStep1 = true;
-                    playBufferSound(bow1Buffer, 320, 1.2, 0.7);
+                    playBufferSound(bow1Buffer, 320, 1.2, 0.5);
                     createBurst(ringX, ringY, 15, 'rgba(255, 255, 255, 0.9)');
                 }
 
-                // 3/5 point (60.0%) -> Play bow_2.mp3 ONCE at 70% volume (0.7)
+                // 3/5 point (60.0%) -> Play bow_2.mp3 ONCE at 50% volume (0.5)
                 if (progress >= 0.60 && !triggeredStep2) {
                     triggeredStep2 = true;
-                    playBufferSound(bow2Buffer, 480, 1.2, 0.7);
+                    playBufferSound(bow2Buffer, 480, 1.2, 0.5);
                     createBurst(ringX, ringY, 25, '#ffffff');
                 }
 

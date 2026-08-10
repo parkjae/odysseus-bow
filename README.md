@@ -1,6 +1,6 @@
 # 🏹 Odysseus's Bow
 
-> **Odysseus's Bow**는 활시위를 거는 **"STRING A BOW"** 시퀀스와, 활시위를 튕겨 연주하는 **"PLUCK A BOW"** 시퀀스로 구성된 단일 통합 웹 인터랙티브 애플리케이션입니다.
+> **Odysseus's Bow**는 활시위를 거는 **"STRING A BOW"** 시퀀스와, 활시위를 튕겨 연주하는 **"PLUCK A BOW"** 시퀀스로 구성된 단일 통합 웹 인터랙티브 애플리케이션(`index.html`)입니다.
 
 ---
 
