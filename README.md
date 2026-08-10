@@ -30,3 +30,8 @@
 별도의 설치나 서버 실행 없이 아래 **GitHub Pages 라이브 주소**로 접속하시면 PC 및 모바일 스마트폰에서 즉시 플레이할 수 있습니다:
 
 👉 **[https://parkjae.github.io/odysseus-bow/](https://parkjae.github.io/odysseus-bow/)**
+
+---
+
+## 🎵 Credits & Acknowledgments
+- Sound effects created via [ElevenLabs](https://elevenlabs.io/)

@@ -21,9 +21,9 @@
 
 ---
 
-## 📁 3. 프로젝트 파일 구성
+## 📁 3. 프로젝트 파일 구성 및 크레딧
 
 - `main.html` / `index.html`: **단일 통합 메인 애플리케이션 (`Odysseus's Bow`)**
-- `pluck.mp3`, `bow_1.mp3`, `bow_2.mp3`: 사운드 리소스 파일
+- `pluck.mp3`, `bow_1.mp3`, `bow_2.mp3`: 사운드 리소스 파일 (Sound effects created via [ElevenLabs](https://elevenlabs.io/))
 - `PROJECT.md`: 기술 및 개발 기록 문서
-- `README.md`: 사용자 가이드 문서 (GitHub Pages 라이브 주소 탑재)
+- `README.md`: 사용자 가이드 문서 (GitHub Pages 라이브 주소 및 ElevenLabs 크레딧 탑재)
