@@ -11,17 +11,18 @@
 
 ---
 
-## 🛠️ 2. 트리거 및 위치 사양
+## 🛠️ 2. 색상 및 테마 디자인 사양
 
-### 2.1 Audio Trigger Points (Scene 1)
-- 🎵 **`bow_1.mp3`**: 이동 진행률 **1/5 지점 (20.0%)** 통과 시 1회 재생
-- 🎶 **`bow_2.mp3`**: 이동 진행률 **3/5 지점 (60.0%)** 통과 시 1회 재생
+### 2.1 Color Palette & Physics
+- **Scene 1 (STRING A BOW)**: 미니멀 순백색 (`#FFFFFF`, Glow: White)
+- **Scene 2 (PLUCK A BOW)**: 신화적 황금색 (**`#E5B409`**, Glow: Golden Yellow, Particles: `#E5B409`)
+- **Sine Spline Physics Engine**: 2단계에서 화면 전역 손길에 반응하는 부드러운 스플라인 탄성 엔진 구현.
 
 ---
 
 ## 📁 3. 프로젝트 파일 구성
 
-- `main.html`: **통합 메인 애플리케이션 (`Odysseus's Bow`)**
+- `main.html`: **단일 통합 메인 애플리케이션 (`Odysseus's Bow`)**
 - `pluck.mp3`, `bow_1.mp3`, `bow_2.mp3`: 사운드 리소스 파일
 - `PROJECT.md`: 기술 및 개발 기록 문서
 - `README.md`: 사용자 가이드 문서
