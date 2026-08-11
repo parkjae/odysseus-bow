@@ -10,23 +10,26 @@
 
 ## 🎼 2. 오디오 인터랙션 및 UX 사양
 
-### 2.1 디바이스 호환성 및 오디오 세션 (iOS Mute Override)
+### 2.1 디바이스 호환성 및 오디오 세션 (iOS Mute Override & Android Clipping Protection)
 - **하이브리드 iOS AudioSession 승격**:
   - 최신 iOS 17+ API (`navigator.audioSession.type = 'playback'`)와 하위 호환 HTML5 무음 Audio Hack (`SILENT_WAV_BASE64`)을 동시 적용.
   - 아이폰의 하드웨어 무음 스위치가 켜진 상태에서도 미디어 재생 카테고리로 승격되어 사운드가 스피커로 출력됨.
+- **`DynamicsCompressorNode` 오디오 리미터 도입**:
+  - `threshold: -12dB`, `knee: 30`, `ratio: 12:1`, `attack: 3ms`, `release: 250ms` 설정으로 안드로이드/iOS 등 모든 스마트폰 스피커에서 다중 오버랩 튕김 시 발생할 수 있는 찢어지는 디지털 클리핑 노이즈(Distortion)를 100% 방지.
 - **사운드 언락 전 인터랙션 차단**:
   - 오디오 활성화 버튼을 누르기 전(`!isUnlocked`)까지는 캔버스 링 드래그 및 연주 조작이 완전 차단됨.
 
 ### 2.2 음량(Volume) 및 피치(Pitch) 사양
 - **`bow_1.mp3` & `bow_2.mp3`**:
-  - 활시위를 걸 때 발생하는 배경음의 음량을 **50% (`0.5`)** 수준으로 은은하게 축소 조절.
+  - 1/5 지점(20%): `bow_1.mp3` 재생, 3/5 지점(60%): `bow_2.mp3` 재생.
+  - 음량을 **50% (`0.5`)** 수준으로 은은하게 축소 조절.
 - **`pluck.mp3` (FOREPLAY 시퀀스)**:
   - 1차 Pluck: **원본 피치 (`1.0`)**, 100% 음량 (`1.0`)
   - 2차 Pluck: **반음 하향 (`Math.pow(2, -1/12)`)**, 100% 음량 (`1.0`), 1차 음 재생 1초(`1000ms`) 후 연속 연주.
 - **`pluck.mp3` (Scene 2 메인 연주)**:
   - 변수명: **`MAIN_SEMITONES_DOWN_RATE`** (`Math.pow(2, -3/12)` = 단3도/3반음 하향)
   - **당긴 변위 비례 동적 가변 음량 (Dynamic Displacement Volume)**:
-    - 최소 50% (`0.5`) ~ 최대 130% (`1.3`)
+    - 최소 50% (`0.5`) ~ **최대 120% (`1.2`)**
     - 당긴 거리에 비례하여 실시간으로 음량이 가변 계산됨.
   - **다중 화음(Polyphonic) 및 연속 연주 (Rapid Plucking)**:
     - 연속 튕기기 시 이전 소리 fade-out 블로킹 차단 구문을 전면 제거하여 소리 중첩(Overlapping Polyphony) 및 연달아 패스트 플러킹 허용.
