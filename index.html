@@ -272,8 +272,10 @@
         const reloadBtn = document.getElementById('reloadBtn');
 
         // Pitch Rates
-        const ONE_SEMITONE_DOWN_RATE = Math.pow(2, -1 / 12);
-        const MAIN_SEMITONES_DOWN_RATE = Math.pow(2, -3 / 12);
+        const FIRST_SEMITONE_DOWN_RATE = Math.pow(2, -1 / 12);
+        const SECOND_SEMITONE_DOWN_RATE = Math.pow(2, 4 / 12);
+        const THIRD_SEMITONE_DOWN_RATE = Math.pow(2, 3 / 12);
+        const MAIN_SEMITONES_DOWN_RATE = Math.pow(2, 1 / 12);
 
         // Silent WAV Base64 Data URI (0.05s) to override iOS Mute Switch
         const SILENT_WAV_BASE64 = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
@@ -434,8 +436,8 @@
             }
         }
 
-        // Playbuffer function routed through DynamicsCompressorNode
-        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0, playbackRate = 1.0, volumeScale = 1.0) {
+        // Playbuffer function supporting optional BiquadFilter (e.g. High-Pass Filter for Harp effect)
+        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0, playbackRate = 1.0, volumeScale = 1.0, filterType = null, filterFreq = 800) {
             unlockAudio();
             const now = audioCtx ? audioCtx.currentTime : 0;
             const outputDestination = compressorNode || (audioCtx ? audioCtx.destination : null);
@@ -449,7 +451,19 @@
                 gainNode.gain.setValueAtTime(volumeScale, now);
                 gainNode.gain.value = volumeScale;
 
-                source.connect(gainNode);
+                let lastNode = source;
+
+                // Apply Audio Filter for Timbre Modification
+                if (filterType) {
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = filterType; // 'highpass' for bright harp sound
+                    filter.frequency.setValueAtTime(filterFreq, now); // 800Hz cutoff
+                    filter.Q.setValueAtTime(1.2, now);
+                    source.connect(filter);
+                    lastNode = filter;
+                }
+
+                lastNode.connect(gainNode);
                 gainNode.connect(outputDestination);
 
                 source.start(now);
@@ -460,7 +474,7 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
 
-                osc.type = 'triangle';
+                osc.type = filterType === 'highpass' ? 'sine' : 'triangle';
                 const shiftedFreq = fallbackFreq * playbackRate;
                 osc.frequency.setValueAtTime(shiftedFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(shiftedFreq * 1.2, now + 0.2);
@@ -753,24 +767,30 @@
             resetToBowScene();
         });
 
-        // FOREPLAY: 1st & 2nd Pluck Prelude Sequence before scene transition
+        // FOREPLAY: 1st, 2nd & 3rd Pluck Prelude Sequence with High-Pass Filter (Bright Harp Timbre)
         function playForeplaySequence() {
             promptText.textContent = "준비 완료";
 
-            // 1st Foreplay Pluck: Original Pitch (1.0), Full Volume (1.0)
-            playBufferSound(pluckBuffer, 220, 0.8, 1.0, 1.0);
+            // 1st Foreplay Pluck: High-pass Filtered for bright harp sound
+            playBufferSound(pluckBuffer, 220, 0.8, FIRST_SEMITONE_DOWN_RATE, 0.5, 'highpass', 800);
             createBurst(targetX, targetY, 20, '#E5B409');
 
-            // 2nd Foreplay Pluck: Math.pow(2, -1 / 12) (1 semitone down) after 1000ms
+            // 2nd Foreplay Pluck: High-pass Filtered for bright harp sound
             setTimeout(() => {
-                playBufferSound(pluckBuffer, 220, 0.8, ONE_SEMITONE_DOWN_RATE, 1.0);
+                playBufferSound(pluckBuffer, 220, 0.8, SECOND_SEMITONE_DOWN_RATE, 0.5, 'highpass', 800);
                 createBurst(targetX, targetY, 30, '#E5B409');
 
-                // Transition smoothly to Scene 2 (PLUCK A BOW) after foreplay finishes
+                // 3rd Foreplay Pluck: High-pass Filtered for bright harp sound
                 setTimeout(() => {
-                    transitionToStringScene();
-                }, 100);
-            }, 1000);
+                    playBufferSound(pluckBuffer, 220, 0.8, THIRD_SEMITONE_DOWN_RATE, 0.5, 'highpass', 800);
+                    createBurst(targetX, targetY, 35, '#E5B409');
+
+                    // Transition smoothly to Scene 2 (PLUCK A BOW) after 3rd foreplay finishes
+                    setTimeout(() => {
+                        transitionToStringScene();
+                    }, 100);
+                }, 1000);
+            }, 900);
         }
 
         // ----------------------------------------------------
