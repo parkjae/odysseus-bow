@@ -40,6 +40,8 @@
 ---
 
 ## 🛠️ 3. UI/UX 및 물리 엔진 사양
+- **반응형 1줄 고정 타이포그래피 (Single-line Typography System)**:
+  - 상단 타이틀 (`ODYSSEUS'S BOW`) 및 하단 중앙 프롬프트 버튼 (`promptText`)이 모바일 해상도 너비에 상관없이 단어가 조각나거나 부자연스럽게 줄바꿈되지 않도록 `white-space: nowrap` 및 `font-size: clamp()` 기술 적용.
 - **상단 타이틀 미니멀리즘**:
   - `<h1>ODYSSEUS'S BOW</h1>` 및 `<div class="sub-caption">` 아래의 불필요한 보조 설명 문구를 제거하여 최상의 미니멀 디자인 구현.
 - **리로드 버튼 이벤트 전파 완전 차단 (Event Isolation)**:
