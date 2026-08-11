@@ -215,6 +215,8 @@
 
         let currentAudioSource = null;
         let currentGainNode = null;
+        let bow2SourceNode = null; // Reference for bow_2.mp3 source node
+        let isBow2Finished = false;
 
         const audioPrompt = document.getElementById('audioPrompt');
         const promptText = document.getElementById('promptText');
@@ -222,7 +224,43 @@
         const guideText = document.getElementById('guideText');
         const reloadBtn = document.getElementById('reloadBtn');
 
+        // Pitch Rates
+        const ONE_SEMITONE_DOWN_RATE = Math.pow(2, -1 / 12);
+        const MAIN_SEMITONES_DOWN_RATE = Math.pow(2, -3 / 12);
+
+        // Silent WAV Base64 Data URI (0.05s) to override iOS Mute Switch
+        const SILENT_WAV_BASE64 = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        let silentAudioEl = null;
+
+        // Hybrid iOS Audio Session Unlock (AudioSession API + Silent Audio Hack)
+        function enableIOSAudioSession() {
+            // Method 1: Modern Web Audio Session API (iOS 17+)
+            if (navigator.audioSession) {
+                try {
+                    navigator.audioSession.type = 'playback';
+                } catch(e) {}
+            }
+
+            // Method 2: HTML5 Silent Audio Element Hack for iOS Mute Switch Override (All iOS versions)
+            if (!silentAudioEl) {
+                try {
+                    silentAudioEl = new Audio();
+                    silentAudioEl.src = SILENT_WAV_BASE64;
+                    silentAudioEl.setAttribute('playsinline', 'true');
+                    silentAudioEl.setAttribute('webkit-playsinline', 'true');
+                } catch(e) {}
+            }
+
+            if (silentAudioEl) {
+                silentAudioEl.play().then(() => {
+                    silentAudioEl.pause();
+                }).catch(() => {});
+            }
+        }
+
         function unlockAudio() {
+            enableIOSAudioSession();
+
             if (!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 audioCtx = new AudioContext();
@@ -320,17 +358,19 @@
             }
         }
 
-        // Clean 1:1 playback function without sound-specific volume overrides
-        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0) {
+        // Playbuffer function supporting playbackRate for Pitch Shifting and volumeScale for Gain Control
+        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0, playbackRate = 1.0, volumeScale = 1.0) {
             unlockAudio();
             const now = audioCtx ? audioCtx.currentTime : 0;
 
             if (audioCtx && buffer && isAudioLoaded) {
                 const source = audioCtx.createBufferSource();
                 source.buffer = buffer;
+                source.playbackRate.setValueAtTime(playbackRate, now);
 
                 const gainNode = audioCtx.createGain();
-                gainNode.gain.setValueAtTime(1.0, now);
+                gainNode.gain.setValueAtTime(volumeScale, now);
+                gainNode.gain.value = volumeScale;
 
                 source.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
@@ -344,10 +384,11 @@
                 const gain = audioCtx.createGain();
 
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(fallbackFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(fallbackFreq * 1.2, now + 0.2);
+                const shiftedFreq = fallbackFreq * playbackRate;
+                osc.frequency.setValueAtTime(shiftedFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(shiftedFreq * 1.2, now + 0.2);
 
-                gain.gain.setValueAtTime(1.0, now);
+                gain.gain.setValueAtTime(volumeScale, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
                 osc.connect(gain);
@@ -585,6 +626,8 @@
                     isDraggingRing = false;
                     triggeredStep1 = false;
                     triggeredStep2 = false;
+                    bow2SourceNode = null;
+                    isBow2Finished = false;
                     ringX = baseRingX;
                     ringY = baseRingY;
                     ringVx = 0;
@@ -625,6 +668,24 @@
             e.stopPropagation();
             resetToBowScene();
         });
+
+        // FOREPLAY: 1st & 2nd Pluck Prelude Sequence before scene transition
+        function playForeplaySequence() {
+            // 1st Foreplay Pluck: Original Pitch (1.0), Full Volume (1.0)
+            playBufferSound(pluckBuffer, 220, 0.8, 1.0, 1.0);
+            createBurst(targetX, targetY, 20, '#E5B409');
+
+            // 2nd Foreplay Pluck: Math.pow(2, -1 / 12) (1 semitone down) after 1000ms
+            setTimeout(() => {
+                playBufferSound(pluckBuffer, 220, 0.8, ONE_SEMITONE_DOWN_RATE, 1.0);
+                createBurst(targetX, targetY, 30, '#E5B409');
+
+                // Transition smoothly to Scene 2 (PLUCK A BOW) after foreplay finishes
+                setTimeout(() => {
+                    transitionToStringScene();
+                }, 100);
+            }, 1000);
+        }
 
         // ----------------------------------------------------
         // Pointer & Touch Handlers
@@ -691,17 +752,26 @@
                 const currentDistance = baseRingY - ringY;
                 const progress = Math.min(Math.max(currentDistance / totalDistance, 0), 1.0);
 
-                // 1/5 point (20.0%) -> Play bow_1.mp3 at standard 1:1 volume
+                // 1/5 point (20.0%) -> Play bow_1.mp3 at 50% volume (0.5)
                 if (progress >= 0.20 && !triggeredStep1) {
                     triggeredStep1 = true;
-                    playBufferSound(bow1Buffer, 320, 1.2);
+                    playBufferSound(bow1Buffer, 320, 1.2, 1.0, 0.5);
                     createBurst(ringX, ringY, 15, 'rgba(255, 255, 255, 0.9)');
                 }
 
-                // 3/5 point (60.0%) -> Play bow_2.mp3 at standard 1:1 volume
+                // 3/5 point (60.0%) -> Play bow_2.mp3 at 50% volume (0.5) with onended listener
                 if (progress >= 0.60 && !triggeredStep2) {
                     triggeredStep2 = true;
-                    playBufferSound(bow2Buffer, 480, 1.2);
+                    isBow2Finished = false;
+                    bow2SourceNode = playBufferSound(bow2Buffer, 480, 1.2, 1.0, 0.5);
+
+                    if (bow2SourceNode) {
+                        bow2SourceNode.onended = () => {
+                            isBow2Finished = true;
+                        };
+                    } else {
+                        setTimeout(() => { isBow2Finished = true; }, 1200);
+                    }
                     createBurst(ringX, ringY, 25, '#ffffff');
                 }
 
@@ -716,12 +786,18 @@
 
                     createBurst(targetX, targetY, 40, '#E5B409');
 
-                    guideText.textContent = "목적지 도착! Pluck a bow 시퀀스로 전환합니다...";
+                    guideText.textContent = "목적지 도착! 활 시위 장착 완료...";
                     guideText.style.color = "#E5B409";
 
-                    setTimeout(() => {
-                        transitionToStringScene();
-                    }, 1000);
+                    // Trigger Foreplay sequence after bow_2.mp3 finishes
+                    if (isBow2Finished || !bow2SourceNode) {
+                        playForeplaySequence();
+                    } else {
+                        bow2SourceNode.onended = () => {
+                            isBow2Finished = true;
+                            playForeplaySequence();
+                        };
+                    }
                 }
             } else if (currentScene === SCENE_STRING) {
                 if (!isDraggingString || dragNodeIndex === -1 || isStringResetting) return;
@@ -758,8 +834,8 @@
                     const displacement = Math.abs(grabbedNode.x - centerX);
 
                     if (displacement > 5) {
-                        const intensity = Math.min(displacement / (width * 0.25), 1.0);
-                        playBufferSound(pluckBuffer, 220, 0.8);
+                        // Play pluck.mp3 at 150% volume (1.5) in Scene 2
+                        playBufferSound(pluckBuffer, 220, 0.8, MAIN_SEMITONES_DOWN_RATE, 1.5);
                         createBurst(grabbedNode.x, grabbedNode.y, 25, '#E5B409');
 
                         isStringVibrating = true;
