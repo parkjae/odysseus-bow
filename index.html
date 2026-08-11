@@ -257,6 +257,7 @@
         let bow1Buffer = null;
         let bow2Buffer = null;
         let pluckBuffer = null;
+        let harpBuffer = null;
         let isAudioLoaded = false;
         let isUnlocked = false;
 
@@ -371,25 +372,28 @@
             try {
                 initAudioContext();
 
-                const [res1, res2, resPluck] = await Promise.all([
+                const [res1, res2, resPluck, resHarp] = await Promise.all([
                     fetch('bow_1.mp3'),
                     fetch('bow_2.mp3'),
-                    fetch('pluck.mp3')
+                    fetch('pluck.mp3'),
+                    fetch('harp.mp3')
                 ]);
 
-                if (!res1.ok || !res2.ok || !resPluck.ok) {
+                if (!res1.ok || !res2.ok || !resPluck.ok || !resHarp.ok) {
                     throw new Error('Failed to load audio files');
                 }
 
-                const [ab1, ab2, abPluck] = await Promise.all([
+                const [ab1, ab2, abPluck, abHarp] = await Promise.all([
                     res1.arrayBuffer(),
                     res2.arrayBuffer(),
-                    resPluck.arrayBuffer()
+                    resPluck.arrayBuffer(),
+                    resHarp.arrayBuffer()
                 ]);
 
                 bow1Buffer = await audioCtx.decodeAudioData(ab1);
                 bow2Buffer = await audioCtx.decodeAudioData(ab2);
                 pluckBuffer = await audioCtx.decodeAudioData(abPluck);
+                harpBuffer = await audioCtx.decodeAudioData(abHarp);
 
                 isAudioLoaded = true;
 
@@ -436,8 +440,8 @@
             }
         }
 
-        // Playbuffer function supporting optional BiquadFilter (e.g. High-Pass Filter for Harp effect)
-        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0, playbackRate = 1.0, volumeScale = 1.0, filterType = null, filterFreq = 800) {
+        // Playbuffer function routed to DynamicsCompressor
+        function playBufferSound(buffer, fallbackFreq = 300, duration = 1.0, playbackRate = 1.0, volumeScale = 1.0) {
             unlockAudio();
             const now = audioCtx ? audioCtx.currentTime : 0;
             const outputDestination = compressorNode || (audioCtx ? audioCtx.destination : null);
@@ -448,22 +452,11 @@
                 source.playbackRate.setValueAtTime(playbackRate, now);
 
                 const gainNode = audioCtx.createGain();
-                gainNode.gain.setValueAtTime(volumeScale, now);
-                gainNode.gain.value = volumeScale;
+                // 5ms Micro Fade-In Attack: Completely eliminates audio start click/pop noise
+                gainNode.gain.setValueAtTime(0.0001, now);
+                gainNode.gain.linearRampToValueAtTime(volumeScale, now + 0.005);
 
-                let lastNode = source;
-
-                // Apply Audio Filter for Timbre Modification
-                if (filterType) {
-                    const filter = audioCtx.createBiquadFilter();
-                    filter.type = filterType; // 'highpass' for bright harp sound
-                    filter.frequency.setValueAtTime(filterFreq, now); // 800Hz cutoff
-                    filter.Q.setValueAtTime(1.2, now);
-                    source.connect(filter);
-                    lastNode = filter;
-                }
-
-                lastNode.connect(gainNode);
+                source.connect(gainNode);
                 gainNode.connect(outputDestination);
 
                 source.start(now);
@@ -474,7 +467,7 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
 
-                osc.type = filterType === 'highpass' ? 'sine' : 'triangle';
+                osc.type = 'triangle';
                 const shiftedFreq = fallbackFreq * playbackRate;
                 osc.frequency.setValueAtTime(shiftedFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(shiftedFreq * 1.2, now + 0.2);
@@ -767,22 +760,24 @@
             resetToBowScene();
         });
 
-        // FOREPLAY: 1st, 2nd & 3rd Pluck Prelude Sequence with High-Pass Filter (Bright Harp Timbre)
+        // FOREPLAY: 1st, 2nd & 3rd Pluck Prelude Sequence using harp.mp3 sound at 100% volume
         function playForeplaySequence() {
             promptText.textContent = "준비 완료";
 
-            // 1st Foreplay Pluck: High-pass Filtered for bright harp sound
-            playBufferSound(pluckBuffer, 220, 0.8, FIRST_SEMITONE_DOWN_RATE, 0.5, 'highpass', 800);
+            const soundBuffer = harpBuffer || pluckBuffer;
+
+            // 1st Foreplay Pluck (harp.mp3 at 100% Volume)
+            playBufferSound(soundBuffer, 220, 0.8, FIRST_SEMITONE_DOWN_RATE, 1.0);
             createBurst(targetX, targetY, 20, '#E5B409');
 
-            // 2nd Foreplay Pluck: High-pass Filtered for bright harp sound
+            // 2nd Foreplay Pluck (harp.mp3 at 100% Volume)
             setTimeout(() => {
-                playBufferSound(pluckBuffer, 220, 0.8, SECOND_SEMITONE_DOWN_RATE, 0.5, 'highpass', 800);
+                playBufferSound(soundBuffer, 220, 0.8, SECOND_SEMITONE_DOWN_RATE, 1.0);
                 createBurst(targetX, targetY, 30, '#E5B409');
 
-                // 3rd Foreplay Pluck: High-pass Filtered for bright harp sound
+                // 3rd Foreplay Pluck (harp.mp3 at 100% Volume)
                 setTimeout(() => {
-                    playBufferSound(pluckBuffer, 220, 0.8, THIRD_SEMITONE_DOWN_RATE, 0.5, 'highpass', 800);
+                    playBufferSound(soundBuffer, 220, 0.8, THIRD_SEMITONE_DOWN_RATE, 1.0);
                     createBurst(targetX, targetY, 35, '#E5B409');
 
                     // Transition smoothly to Scene 2 (PLUCK A BOW) after 3rd foreplay finishes

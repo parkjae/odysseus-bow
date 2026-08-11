@@ -16,18 +16,24 @@
   - 아이폰의 하드웨어 무음 스위치가 켜진 상태에서도 미디어 재생 카테고리로 승격되어 사운드가 스피커로 출력됨.
 - **`DynamicsCompressorNode` 오디오 리미터 도입**:
   - `threshold: -12dB`, `knee: 30`, `ratio: 12:1`, `attack: 3ms`, `release: 250ms` 설정으로 안드로이드/iOS 등 모든 스마트폰 스피커에서 다중 오버랩 튕김 시 발생할 수 있는 찢어지는 디지털 클리핑 노이즈(Distortion)를 100% 방지.
+- **5ms Micro Fade-In Attack (클릭/팝 노이즈 차단)**:
+  - 오디오 재생 시작 시 무음(0V)에서 순간 급상승하는 파형으로 인해 스피커에서 생길 수 있는 "틱!" (Click/Pop) 노이즈를 차단하기 위해 `gainNode.gain.linearRampToValueAtTime(volumeScale, now + 0.005)` 5ms 마이크로 어택 엔벨로프 구축.
 - **사운드 언락 전 인터랙션 차단**:
   - 오디오 활성화 버튼을 누르기 전(`!isUnlocked`)까지는 캔버스 링 드래그 및 연주 조작이 완전 차단됨.
 
-### 2.2 음량(Volume) 및 피치(Pitch) 사양
+### 2.2 음량(Volume), 피치(Pitch) 및 음원 사양
 - **`bow_1.mp3` & `bow_2.mp3`**:
   - 1/5 지점(20%): `bow_1.mp3` 재생, 3/5 지점(60%): `bow_2.mp3` 재생.
-  - 음량을 **50% (`0.5`)** 수준으로 은은하게 축소 조절.
-- **`pluck.mp3` (FOREPLAY 시퀀스)**:
-  - 1차 Pluck: **원본 피치 (`1.0`)**, 100% 음량 (`1.0`)
-  - 2차 Pluck: **반음 하향 (`Math.pow(2, -1/12)`)**, 100% 음량 (`1.0`), 1차 음 재생 1초(`1000ms`) 후 연속 연주.
+  - 음량을 **50% (`0.5`)** 수준으로 은은하게 조절.
+- **`harp.mp3` (FOREPLAY 아르페지오 시퀀스)**:
+  - **음원**: 전용 `harp.mp3` 오디오 버퍼 프리로드 적용.
+  - **음량**: **100% (`1.0`)**
+  - **피치 구성**:
+    - 1차 Pluck: `FIRST_SEMITONE_DOWN_RATE` (`Math.pow(2, -1/12)` = 1반음 하향)
+    - 2차 Pluck: `SECOND_SEMITONE_DOWN_RATE` (`Math.pow(2, 4/12)` = 4반음 상향)
+    - 3차 Pluck: `THIRD_SEMITONE_DOWN_RATE` (`Math.pow(2, 3/12)` = 3반음 상향)
 - **`pluck.mp3` (Scene 2 메인 연주)**:
-  - 변수명: **`MAIN_SEMITONES_DOWN_RATE`** (`Math.pow(2, -3/12)` = 단3도/3반음 하향)
+  - 변수명: **`MAIN_SEMITONES_DOWN_RATE`** (`Math.pow(2, 1/12)` = 1반음 상향)
   - **당긴 변위 비례 동적 가변 음량 (Dynamic Displacement Volume)**:
     - 최소 50% (`0.5`) ~ **최대 120% (`1.2`)**
     - 당긴 거리에 비례하여 실시간으로 음량이 가변 계산됨.
@@ -57,6 +63,7 @@
 
 ## 📁 4. 프로젝트 파일 구성 및 크레딧
 - `index.html`: **단일 통합 메인 애플리케이션 (`Odysseus's Bow`)**
+- `harp.mp3`: **FOREPLAY 구간 하프 연주 사운드**
 - `pluck.mp3`, `bow_1.mp3`, `bow_2.mp3`: 사운드 리소스 파일 (Sound effects created via [ElevenLabs](https://elevenlabs.io/))
 - `PROJECT.md`: 통합 개발 기록 문서
 - `README.md`: 사용자 안내 가이드 문서

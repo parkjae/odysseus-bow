@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pluck Sound Tone Tester</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            min-height: 100vh;
+            background-color: #050508;
+            font-family: 'Outfit', -apple-system, sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(229, 180, 9, 0.3);
+            border-radius: 24px;
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(229, 180, 9, 0.15);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            color: #E5B409;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(229, 180, 9, 0.4);
+        }
+
+        p.subtitle {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 25px;
+        }
+
+        .tone-display {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .semitone-value {
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .rate-value {
+            font-size: 0.85rem;
+            color: #E5B409;
+            margin-top: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .control-group {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+
+        .control-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            outline: none;
+            accent-color: #E5B409;
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 8px 0;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: rgba(229, 180, 9, 0.25);
+            border-color: #E5B409;
+            color: #E5B409;
+        }
+
+        .preset-btn.active {
+            background: #E5B409;
+            color: #050508;
+            font-weight: 600;
+            border-color: #E5B409;
+            box-shadow: 0 0 12px rgba(229, 180, 9, 0.5);
+        }
+
+        .play-btn {
+            width: 100%;
+            padding: 15px;
+            background: #E5B409;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #050508;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(229, 180, 9, 0.3);
+            margin-bottom: 12px;
+        }
+
+        .play-btn:hover {
+            background: #f4ca25;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(229, 180, 9, 0.45);
+        }
+
+        .play-btn:active {
+            transform: translateY(0);
+        }
+
+        .code-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px dashed rgba(229, 180, 9, 0.4);
+            border-radius: 12px;
+            padding: 12px 15px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #E5B409;
+            word-break: break-all;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Pluck Sound Tone Tester</h1>
+        <p class="subtitle">pluck.mp3 음정(Tone / Semitone) 피치 튜닝 테스터</p>
+
+        <div class="tone-display">
+            <div class="semitone-value" id="semitoneDisplay">0 semitones</div>
+            <div class="rate-value" id="rateDisplay">playbackRate = Math.pow(2, 0 / 12) = 1.0000</div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>반음(Semitone) 피치 조절</span>
+                <span id="sliderValLabel">0</span>
+            </div>
+            <input type="range" id="semitoneSlider" min="-12" max="12" step="1" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>볼륨 (Volume Scale)</span>
+                <span id="volumeValLabel">100%</span>
+            </div>
+            <input type="range" id="volumeSlider" min="0.1" max="1.5" step="0.05" value="1.0">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label" style="margin-bottom: 10px;">
+                <span>자주 쓰는 반음 프리셋 (Presets)</span>
+            </div>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-val="-3">-3 semitones</button>
+                <button class="preset-btn" data-val="-2">-2 semitones</button>
+                <button class="preset-btn" data-val="-1">-1 semitones</button>
+                <button class="preset-btn active" data-val="0">0 (Original)</button>
+                <button class="preset-btn" data-val="1">+1 semitone</button>
+                <button class="preset-btn" data-val="2">+2 semitones</button>
+                <button class="preset-btn" data-val="3">+3 semitones</button>
+                <button class="preset-btn" data-val="4">+4 semitones</button>
+                <button class="preset-btn" data-val="5">+5 semitones</button>
+                <button class="preset-btn" data-val="7">+7 semitones</button>
+            </div>
+        </div>
+
+        <button class="play-btn" id="playBtn">🔊 현재 설정한 Tone으로 재생</button>
+
+        <div class="code-box" id="codeBox">
+            const RATE = Math.pow(2, 0 / 12);
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let compressorNode = null;
+        let pluckBuffer = null;
+
+        const semitoneSlider = document.getElementById('semitoneSlider');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const semitoneDisplay = document.getElementById('semitoneDisplay');
+        const rateDisplay = document.getElementById('rateDisplay');
+        const sliderValLabel = document.getElementById('sliderValLabel');
+        const volumeValLabel = document.getElementById('volumeValLabel');
+        const playBtn = document.getElementById('playBtn');
+        const codeBox = document.getElementById('codeBox');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+
+                compressorNode = audioCtx.createDynamicsCompressor();
+                compressorNode.threshold.setValueAtTime(-12, audioCtx.currentTime);
+                compressorNode.knee.setValueAtTime(30, audioCtx.currentTime);
+                compressorNode.ratio.setValueAtTime(12, audioCtx.currentTime);
+                compressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
+                compressorNode.release.setValueAtTime(0.25, audioCtx.currentTime);
+                compressorNode.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        async function loadPluckSound() {
+            initAudio();
+            try {
+                const res = await fetch('pluck.mp3');
+                const arrayBuffer = await res.arrayBuffer();
+                pluckBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            } catch(e) {
+                console.warn('Failed to load pluck.mp3:', e);
+            }
+        }
+
+        loadPluckSound();
+
+        function updateDisplay() {
+            const semitone = parseInt(semitoneSlider.value, 10);
+            const rate = Math.pow(2, semitone / 12);
+
+            const sign = semitone > 0 ? '+' : '';
+            semitoneDisplay.textContent = `${sign}${semitone} semitone${Math.abs(semitone) === 1 ? '' : 's'}`;
+            rateDisplay.textContent = `playbackRate = Math.pow(2, ${semitone} / 12) = ${rate.toFixed(4)}`;
+            sliderValLabel.textContent = `${sign}${semitone}`;
+            
+            const volPercent = Math.round(parseFloat(volumeSlider.value) * 100);
+            volumeValLabel.textContent = `${volPercent}%`;
+
+            codeBox.textContent = `const RATE = Math.pow(2, ${semitone} / 12); // ${rate.toFixed(4)}`;
+
+            presetBtns.forEach(btn => {
+                const btnVal = parseInt(btn.getAttribute('data-val'), 10);
+                if (btnVal === semitone) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function playPluck() {
+            initAudio();
+            if (!pluckBuffer) {
+                alert('pluck.mp3 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
+                return;
+            }
+
+            const semitone = parseInt(semitoneSlider.value, 10);
+            const rate = Math.pow(2, semitone / 12);
+            const volume = parseFloat(volumeSlider.value);
+            const now = audioCtx.currentTime;
+
+            const source = audioCtx.createBufferSource();
+            source.buffer = pluckBuffer;
+            source.playbackRate.setValueAtTime(rate, now);
+
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(volume, now);
+
+            source.connect(gainNode);
+            gainNode.connect(compressorNode || audioCtx.destination);
+
+            source.start(now);
+        }
+
+        semitoneSlider.addEventListener('input', updateDisplay);
+        volumeSlider.addEventListener('input', updateDisplay);
+
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = btn.getAttribute('data-val');
+                semitoneSlider.value = val;
+                updateDisplay();
+                playPluck();
+            });
+        });
+
+        playBtn.addEventListener('click', playPluck);
+
+        updateDisplay();
+    </script>
+</body>
+</html>
