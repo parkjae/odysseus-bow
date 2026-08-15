@@ -9,7 +9,8 @@
 
 별도의 설치 없이 모바일 스마트폰이나 PC 브라우저에서 아래 주소로 접속하면 즉시 체험할 수 있습니다:
 
-👉 **[https://parkjae.github.io/odysseus-bow/](https://parkjae.github.io/odysseus-bow/)**
+👉 **[https://parkjae.github.io/odysseus-bow/](https://parkjae.github.io/odysseus-bow/)**  
+<img width="462" height="797" alt="image" src="https://github.com/user-attachments/assets/e05cbd07-cac6-4366-913b-52e7387ddba8" />
 
 ---
 
@@ -32,7 +33,7 @@
 ---
 
 ### 3️⃣ 2단계: PLUCK A BOW (황금 활시위 연주)
-- **목표**: 화면에 팽팽하게 걸린 황금 활시위(`#E5B409`)를 자유롭게 튕기며 연주하세요.
+- **목표**: 화면에 팽팽하게 걸린 황금 활시위를 자유롭게 튕기며 연주하세요.
 - **조작 방법**:
   - 얇은 현을 직접 맞출 필요 없이, **화면 아무 곳이나 마우스/손가락으로 잡고 좌우로 끌었다 놓으세요.** (전역 터치 지원)
 - **물리 및 visual 이펙트**:
